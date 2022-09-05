@@ -1,0 +1,44 @@
+###############
+# Common
+###############
+# Ignore extracted mkisofs files
+mkisofs.*
+
+###############
+# Packer
+###############
+
+# Cache Objects
+packer_cache/
+
+#.DS_Store Objects
+.DS_Store
+#*/.DS_Store
+#*/*/.DS_Store
+
+# Crash log
+crash.log
+
+# For built boxes
+*.box
+
+# Ignore ISO files
+*.iso
+
+# Testing
+test/
+
+##############
+# Terraform
+##############
+
+#Terraform Provider directory
+.terraform/
+
+#Terraform Lock File
+.terraform.*
+
+#Terraform State Files
+terraform.tfstate*
+
+
