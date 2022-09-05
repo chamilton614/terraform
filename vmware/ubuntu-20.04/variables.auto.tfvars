@@ -12,7 +12,7 @@ network = "Management VMs"
 
 template_name = "pkr_tmpl_ubuntu2004"
 vm_name = "ubuntu2004" 
-domain_name = "home.telysian.com"
+domain_name = "home"
 #Ignored the following 4 lines if DHCP used
 vm_ip = "192.168.2.253"
 vm_cidr = 23
