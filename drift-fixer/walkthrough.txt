@@ -1,0 +1,63 @@
+# ─── Step 0: Setup ──────────────────────────────────────────────────
+chmod +x drift_fixer.sh azure_id_lookup.sh
+
+# ─── Step 1: Run the drift detector (generates everything) ─────────
+./drift_fixer.sh --dir ./my-terraform-project
+
+# ─── Step 2: Review the report ─────────────────────────────────────
+cat .drift-fixer/*/drift_report.txt
+
+# ─── Step 3: Review the generated fix script ───────────────────────
+cat .drift-fixer/*/fix_state.sh
+
+# Example output of fix_state.sh:
+# ┌──────────────────────────────────────────────────────────────────┐
+# │  terraform state rm 'azurerm_virtual_network.main'              │
+# │  terraform import 'azurerm_virtual_network.main' '/sub/.../vn'  │
+# │                                                                  │
+# │  terraform state rm 'module.db.azurerm_mssql_server.primary'    │
+# │  terraform import 'module.db.azurerm_mssql_server.primary' ...  │
+# └──────────────────────────────────────────────────────────────────┘
+
+# ─── Step 4: Handle manual lookups (if needed) ─────────────────────
+# If some resources weren't found automatically:
+cat .drift-fixer/*/manual_todo.txt
+
+# Use the helper to find Azure IDs:
+./azure_id_lookup.sh --search "my-resource-name"
+./azure_id_lookup.sh --list-rg "my-resource-group"
+./azure_id_lookup.sh --type azurerm_virtual_network --name my-vnet --rg my-rg
+
+# ─── Step 5: Execute the fixes (interactive, one-by-one) ──────────
+bash .drift-fixer/*/fix_state_safe.sh
+
+# ─── Step 6: Verify ────────────────────────────────────────────────
+cd ./my-terraform-project
+terraform plan
+# Should show 0 changes if everything is fixed!
+
+# ═══════════════════════════════════════════════════════════════════
+# Alternative: fully automated (CAREFUL!)
+# ═══════════════════════════════════════════════════════════════════
+./drift_fixer.sh --dir ./my-terraform-project --execute
+
+# ═══════════════════════════════════════════════════════════════════
+# Alternative: TF 1.5+ import blocks (no state rm needed)
+# ═══════════════════════════════════════════════════════════════════
+./drift_fixer.sh --dir ./my-terraform-project --tf-version-gte-15
+# Then copy the generated imports.tf into your TF project and run:
+cp .drift-fixer/*/imports.tf ./my-terraform-project/
+cd ./my-terraform-project
+terraform plan    # Preview
+terraform apply   # Execute imports
+rm imports.tf     # Clean up import blocks after successful import
+
+
+
+Key safety rules:
+
+1. Always back up state first: terraform state pull > state.backup.json
+2. Always review fix_state.sh before running it
+3. Use fix_state_safe.sh for interactive confirmation of each operation
+4. Run terraform plan after fixes to verify zero diff
+5. If an import fails, restore from backup: terraform state push state.backup.json

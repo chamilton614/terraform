@@ -1,0 +1,87 @@
+# ═══════════════════════════════════════════════════════════════════════
+# AZURE TERRAFORM IMPORT - RESOURCE ID CHEAT SHEET
+# ═══════════════════════════════════════════════════════════════════════
+# Pattern: /subscriptions/{SUB}/resourceGroups/{RG}/providers/{PROVIDER}/{TYPE}/{NAME}
+#
+# SUB = subscription ID (GUID)
+# RG  = resource group name
+
+# ── Compute ──────────────────────────────────────────────────────────
+terraform import azurerm_resource_group.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}
+
+terraform import azurerm_linux_virtual_machine.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Compute/virtualMachines/{NAME}
+
+terraform import azurerm_managed_disk.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Compute/disks/{NAME}
+
+# ── Networking ───────────────────────────────────────────────────────
+terraform import azurerm_virtual_network.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Network/virtualNetworks/{NAME}
+
+terraform import azurerm_subnet.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Network/virtualNetworks/{VNET}/subnets/{NAME}
+
+terraform import azurerm_network_security_group.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Network/networkSecurityGroups/{NAME}
+
+terraform import azurerm_public_ip.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Network/publicIPAddresses/{NAME}
+
+terraform import azurerm_network_interface.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Network/networkInterfaces/{NAME}
+
+terraform import azurerm_lb.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Network/loadBalancers/{NAME}
+
+terraform import azurerm_private_endpoint.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Network/privateEndpoints/{NAME}
+
+# ── Storage / KeyVault ───────────────────────────────────────────────
+terraform import azurerm_storage_account.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Storage/storageAccounts/{NAME}
+
+terraform import azurerm_key_vault.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.KeyVault/vaults/{NAME}
+
+# ── Databases ────────────────────────────────────────────────────────
+terraform import azurerm_mssql_server.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Sql/servers/{NAME}
+
+terraform import azurerm_mssql_database.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Sql/servers/{SERVER}/databases/{DB}
+
+terraform import azurerm_postgresql_flexible_server.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.DBforPostgreSQL/flexibleServers/{NAME}
+
+terraform import azurerm_cosmosdb_account.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.DocumentDB/databaseAccounts/{NAME}
+
+# ── Containers / K8s ────────────────────────────────────────────────
+terraform import azurerm_kubernetes_cluster.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.ContainerService/managedClusters/{NAME}
+
+terraform import azurerm_container_registry.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.ContainerRegistry/registries/{NAME}
+
+# ── Web / App Service ───────────────────────────────────────────────
+terraform import azurerm_service_plan.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Web/serverfarms/{NAME}
+
+terraform import azurerm_linux_web_app.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Web/sites/{NAME}
+
+# ── Identity / RBAC ─────────────────────────────────────────────────
+terraform import azurerm_user_assigned_identity.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{NAME}
+
+terraform import azurerm_role_assignment.example \
+  /subscriptions/{SUB}/providers/Microsoft.Authorization/roleAssignments/{ASSIGNMENT_GUID}
+
+# ── Monitoring ───────────────────────────────────────────────────────
+terraform import azurerm_log_analytics_workspace.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.OperationalInsights/workspaces/{NAME}
+
+terraform import azurerm_application_insights.example \
+  /subscriptions/{SUB}/resourceGroups/{RG}/providers/Microsoft.Insights/components/{NAME}

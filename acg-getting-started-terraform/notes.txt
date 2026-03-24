@@ -1,0 +1,284 @@
+
+Git Repo: https://github.com/ned1313/Getting-Started-Terraform
+
+Terraform Object Reference 
+<resource_type>.<name_label>.<attribute>
+
+e.g.
+resource "aws_instance" "web_server" {
+    name = "web-server"
+    ebs_volume {
+        size = 40
+    }
+}
+
+Terraform Block Types
+-Terraform
+-Providers
+-Resources
+-Data source
+-Variables
+-Outputs
+-Locals
+
+Deploy Terraform Infra
+-Write
+-Plan
+-Apply
+
+terraform init
+-prepare configuration for use
+-find required provider plug-ins
+-configure state backend
+  Uses working directory by default
+-Rerun ONLY when state backend, providers, or modules change
+
+terraform plan
+-loads configuration from working directory
+-loads state data into memory
+-compares configuration and state
+-creates an execution plan
+  save with -out option  e.g. terraform plan -out somefile.tfplan
+  Use terraform show <plan file> to see its contents
+
++ resource will be created
+- resource will be destroyed
+~ resource will be modified in place
+-/+ resource will be recreated
+
+terraform apply
+-accepts a saved plan file
+-executes changes from plan
+-updates state data contents
+-generates a plan if none submitted
+
+terraform destroy
+-destroys all resources from state
+-use with caution
+-alias for terraform apply -destroy
+
+Terraform Variables
+variable "name_label" {}
+-setting a default variable value is good practice
+
+e.g. 
+variable "billing_tag" {}
+variable "aws_region" {
+    type = string
+    description = "Region for aws resources"
+    default = "us-east-1"
+}
+
+Terraform Variable Reference
+var.<name_label>
+
+Terraform Data Types
+-Primitive - String, number, bool
+-Collection - List, set, map
+-Structural - Tuple, object
+
+Data Type Examples
+# List
+[1, 2, 3, 4]
+
+#Map
+{
+    small = "t2.micro"
+    medium = "t2.small"
+    large = "t2.large"
+}
+
+#Collections
+variable "aws_regions" {
+    type = list(string)
+    description = "Regions for AWS resources"
+    default = ["us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+}
+
+Reference Collection Values
+var.<name_label>[<element_number>] - 0 based start value
+var.aws_regions[0]
+
+#Map
+variable "aws_instance_sizes" {
+    type = map(string)
+    description = "Instance sizes to use in AWS"
+    default = {
+        small = "t3.micro"
+        medium = "m4.large"
+        large = "m4.xlarge"
+    }
+}
+
+Reference Collection Values
+var.<name_label>.<key_name> or var.<name_label>["key_name"]
+var.aws_instance_sizes.small or var.aws_instance_sizes["small"]
+
+Output Values
+-printed to terminal after apply
+-stored in state data
+-used by child modules
+
+output "name_label" {
+    value = value
+    description = "string"
+}
+
+Terraform Format and Validate
+#Check Formatting and list files in question
+terraform fmt -check
+
+#Fix formatting to match HCL spec
+terraform fmt
+
+#Check syntax and logic
+terraform validate
+
+Supply Variable Values
+Default value
+-var flag OR -var-file flag
+terraform.tfvars OR terraform.tfvars.json
+*.auto.tfvars OR *.auto.tfvars.json
+TF_VAR_ (environment variables)
+
+Local Values
+-internal temporary values
+-replace repeated values
+-data transformation
+
+locals {
+    key = value
+}
+
+locals {
+    instance_prefix = "globo"
+    common_tags = {
+        company = "Globomantics"
+        project = var.project"
+        billing_code = var.billing_code
+    }
+}
+
+Local Reference
+local.<key>
+local.instance_prefix
+local.common_tags.company
+
+Terraform Expressions
+-literal Expressions
+-object or attribute references
+-arithmetic and logical operators
+-conditional expressions
+-for expressions
+
+Terraform Functions
+-built into terraform binary
+func_name(arg1, arg2, arg3,..)
+-grouped by category
+
+#Startup script
+templatefile(file_path, { map of variables })
+
+#Consistent naming
+lower(local.naming_prefix)
+
+# Add tags to common tags
+merge(local.common_tags, { map of additional tags })
+
+Terraform Console
+terraform console
+e.g.
+min(4,5,16)
+lower("TACOCAT")
+local.common_tags
+
+exit - exit the console
+
+Terraform State Data
+-resource mapping
+-data source mapping
+-outputs
+-metadata
+
+Terraform Backend Options - for state data
+-local backend
+  Default setting in local directory
+-remote backend
+  S3, Azure Storage, Google Cloud Storage, HCP Terraform and Consul
+Features
+ locking
+ workspaces
+
+Data Encryption
+Access Control
+
+terraform {
+    backend "backend_type" {
+        IDENTIFIER = LITERAL_VALUE
+    }
+}
+
+e.g.
+terraform {
+    backend "s3" {
+        bucket = "globo-state-12345"
+        key = "dev/terraform.tfstate"
+        #these can be removed below
+        #region = "us-east-1"
+        #access_key = "xxxxxx"
+        #secret_key = "yyyyyy"
+    }
+}
+
+Partial Backend configuration
+terraform {
+    backend "s3" {}
+}
+
+#Using in-line settings
+terraform init -backend-config="bucket=globo-state-12345"
+#Useing backend config file
+terraform init -backend-config="backend-settings.txt"
+
+Migrate State Data
+# Display all state data
+terraform show
+
+# List all resources and data sources
+terraform state list
+
+# List all attributes of a single object
+terraform state show ADDR
+terraform state show aws_vpc.main
+
+# Show outputs stored in state
+terraform output NAME
+
+Moved Block - moved.tf move state
+moved {
+    from = ADDRESS
+    to = ADDRESS
+}
+
+Import Block - imports.tf 
+import {
+    to = ADDRESS
+    id = "UNIQUE_IDENTIFIER"
+}
+
+Removed Block - removed.tf
+removed {
+    from = ADDRESS
+    lifecycle {
+        prevent_destroy = false
+    }
+}
+
+Migrate State Data
+-Add backend config
+-Run terraform init -backend-config="key=dev.tfstate" (name of file to create)
+-Answer yes to migrate existing state data
+-Run a terraform plan - should show no changes meaning showing it has moved to your backend
+
+Next Steps:
+Try Terraform variables & outputs, Terraform Modules, Terraform Advanced HCL

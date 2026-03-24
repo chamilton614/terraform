@@ -1,0 +1,27 @@
+terraform plan shows drift
+        │
+        ▼
+┌─────────────────────┐
+│ What kind of change? │
+└─────────┬───────────┘
+          │
+     ┌────┼──────────┬──────────────┬────────────────┐
+     ▼    ▼          ▼              ▼                ▼
+  CREATE  UPDATE   DELETE    REPLACE (D+C)     NO-OP ✓
+     │      │        │              │
+     ▼      ▼        ▼              ▼
+  Does    Want     Resource      Want to
+ resource Azure's  in state     keep the
+ exist in current  but not      existing
+ Azure?   values?  in config?   resource?
+     │      │        │              │
+  Y/ \N  Y/ \N   Y/ \N          Y/ \N
+  │    │  │    │  │    │          │    │
+  ▼    ▼  ▼    ▼  ▼    ▼          ▼    ▼
+import │ rm+  apply rm  delete  rm+   let TF
+  it   │ import      from from  import replace
+       │  it         state Azure  it    it
+       ▼
+   terraform
+     apply
+   (creates it)
