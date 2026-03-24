@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Terraform local files (don't bake into image)
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars
+**/.terraform.lock.hcl
+
+# Drift fixer output
+**/.drift-fixer/
+
+# Docker
+Dockerfile
+docker-compose*.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+*.md
+LICENSE

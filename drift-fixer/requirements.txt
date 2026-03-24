@@ -1,0 +1,2 @@
+# Python dependencies for drift-fixer
+# Most functionality uses stdlib only; these are optional enhancements

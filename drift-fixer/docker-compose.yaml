@@ -1,0 +1,73 @@
+###############################################################################
+# docker-compose.yml — Terraform Drift Fixer
+#
+# Usage:
+#   docker compose run --rm drift-fixer fix
+#   docker compose run --rm drift-fixer shell
+#   docker compose run --rm drift-fixer lookup --search "my-resource"
+###############################################################################
+
+services:
+  drift-fixer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TERRAFORM_VERSION: "1.9.5"
+        AZURE_CLI_VERSION: "2.64.0"
+    image: drift-fixer:latest
+    container_name: drift-fixer
+    stdin_open: true    # -i
+    tty: true           # -t
+
+    volumes:
+      # Mount your Terraform project
+      - ${TF_PROJECT_DIR:-./../my-terraform-project}:/workspace
+
+      # Mount Azure CLI credentials from host
+      - ${AZURE_CONFIG_DIR:-~/.azure}:/root/.azure:ro
+
+      # Persist Terraform provider cache across runs
+      - tf-plugin-cache:/root/.terraform.d/plugin-cache
+
+      # Persist drift-fixer output
+      - drift-output:/workspace/.drift-fixer
+
+    environment:
+      # ── Azure Service Principal (alternative to mounting ~/.azure) ──
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+      - AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID:-}
+
+      # ── Terraform ARM provider auth ─────────────────────────────────
+      - ARM_CLIENT_ID=${ARM_CLIENT_ID:-${AZURE_CLIENT_ID:-}}
+      - ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET:-${AZURE_CLIENT_SECRET:-}}
+      - ARM_TENANT_ID=${ARM_TENANT_ID:-${AZURE_TENANT_ID:-}}
+      - ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID:-${AZURE_SUBSCRIPTION_ID:-}}
+
+      # ── Terraform behaviour ─────────────────────────────────────────
+      - TF_IN_AUTOMATION=1
+      - TF_INPUT=0
+      - TF_PLUGIN_CACHE_DIR=/root/.terraform.d/plugin-cache
+
+    working_dir: /workspace
+
+    # Default command (override with: docker compose run drift-fixer <cmd>)
+    command: ["--help"]
+
+    # Network: needed for Azure API calls & provider downloads
+    network_mode: bridge
+
+  # ── Optional: run just a shell for debugging ───────────────────────────
+  shell:
+    extends:
+      service: drift-fixer
+    command: ["shell"]
+    container_name: drift-fixer-shell
+
+volumes:
+  tf-plugin-cache:
+    driver: local
+  drift-output:
+    driver: local

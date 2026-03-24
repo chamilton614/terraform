@@ -1,0 +1,124 @@
+# ═══════════════════════════════════════════════════════════════════════
+# BUILD
+# ═══════════════════════════════════════════════════════════════════════
+
+# Standard build
+docker build -t drift-fixer:latest .
+
+# Custom Terraform / Azure CLI versions
+docker build \
+  --build-arg TERRAFORM_VERSION=1.8.5 \
+  --build-arg AZURE_CLI_VERSION=2.63.0 \
+  -t drift-fixer:latest .
+
+# Multi-arch build (amd64 + arm64)
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t drift-fixer:latest .
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN — Using host Azure credentials (~/.azure mount)
+# ═══════════════════════════════════════════════════════════════════════
+
+# Full drift fix workflow
+docker run -it --rm \
+  -v $(pwd)/my-infra:/workspace \
+  -v $HOME/.azure:/root/.azure:ro \
+  drift-fixer:latest fix
+
+# Target a specific resource
+docker run -it --rm \
+  -v $(pwd)/my-infra:/workspace \
+  -v $HOME/.azure:/root/.azure:ro \
+  drift-fixer:latest fix \
+    --target 'module.network.azurerm_virtual_network.main'
+
+# With a tfvars file
+docker run -it --rm \
+  -v $(pwd)/my-infra:/workspace \
+  -v $HOME/.azure:/root/.azure:ro \
+  drift-fixer:latest fix \
+    --var-file /workspace/environments/prod.tfvars
+
+# Generate TF 1.5+ import blocks
+docker run -it --rm \
+  -v $(pwd)/my-infra:/workspace \
+  -v $HOME/.azure:/root/.azure:ro \
+  drift-fixer:latest fix --tf-version-gte-15
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN — Using service principal
+# ═══════════════════════════════════════════════════════════════════════
+
+docker run -it --rm \
+  -v $(pwd)/my-infra:/workspace \
+  -e AZURE_CLIENT_ID="00000000-0000-0000-0000-000000000000" \
+  -e AZURE_CLIENT_SECRET="your-secret" \
+  -e AZURE_TENANT_ID="00000000-0000-0000-0000-000000000000" \
+  -e AZURE_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000" \
+  drift-fixer:latest fix
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN — Using .env file
+# ═══════════════════════════════════════════════════════════════════════
+
+# Create .env file:
+#   AZURE_CLIENT_ID=xxx
+#   AZURE_CLIENT_SECRET=xxx
+#   AZURE_TENANT_ID=xxx
+#   AZURE_SUBSCRIPTION_ID=xxx
+
+docker run -it --rm \
+  -v $(pwd)/my-infra:/workspace \
+  --env-file .env \
+  drift-fixer:latest fix
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN — Interactive shell (for debugging / manual lookups)
+# ═══════════════════════════════════════════════════════════════════════
+
+docker run -it --rm \
+  -v $(pwd)/my-infra:/workspace \
+  -v $HOME/.azure:/root/.azure:ro \
+  drift-fixer:latest shell
+
+# Inside the container:
+#   terraform plan
+#   terraform state list
+#   az-lookup --search "my-resource"
+#   drift-fixer --dir /workspace
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN — Docker Compose
+# ═══════════════════════════════════════════════════════════════════════
+
+# Set project directory
+export TF_PROJECT_DIR=$(pwd)/my-infra
+
+# Build
+docker compose build
+
+# Run drift fix
+docker compose run --rm drift-fixer fix
+
+# Interactive shell
+docker compose run --rm shell
+
+# Cleanup
+docker compose down -v
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN — Make targets
+# ═══════════════════════════════════════════════════════════════════════
+
+make build
+make fix TF_DIR=./my-infra
+make fix TF_DIR=./my-infra ARGS="--execute"
+make shell TF_DIR=./my-infra
+make lookup ARGS="--search prod-vnet"
+make validate TF_DIR=./my-infra
